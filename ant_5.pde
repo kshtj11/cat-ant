@@ -50,13 +50,18 @@ void draw() {
         }
       }
     }
+}
+}
 
-    if (mousePressed == true) {
-      s = new Sugar(mouseX, mouseY);
-    }
-
-    if (s != null) {
-      s.show();
-    }
+void keyPressed() {
+  if (key == 'c' || key == 'C') {
+    s = null;
   }
 }
+
+void mousePressed() {
+if (mousePressed == true) {
+      s = new Sugar(mouseX, mouseY);
+    } 
+}
+  
