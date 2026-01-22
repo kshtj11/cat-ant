@@ -9,7 +9,7 @@ class Ant {
     location = new PVector(random(0, width), random(0, height));
     velocity = new PVector(random(-2,2), random(-2,2));
     acceleration = new PVector(0, 0);
-    maxSpeed = random(0.4, 0.6);
+    maxSpeed = 0.5;
     maxForce = 0.1;
   }
 
