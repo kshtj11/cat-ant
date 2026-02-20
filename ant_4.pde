@@ -1,41 +1,54 @@
-int num = 250;
-Ant[] ants = new Ant[num];
-Sugar s;
-PVector mouse;
+// Cat, Ant & Stomps — main sketch
+
+Player    player;
+AntGroup[] groups;
+Kitten    kitten;
+Room      room;
 
 void setup() {
-  size(400, 400);
-  noStroke();
-  fill(0);
-  for (int i=0; i<ants.length; i++) {
-    ants[i] = new Ant();
-  }
+  size(600, 600);
+  room   = new Room();
+  player = new Player(300, 260);
+  groups = new AntGroup[5];
+  for (int i = 0; i < groups.length; i++) groups[i] = new AntGroup();
+  kitten = new Kitten();
 }
 
 void draw() {
+  background(210, 184, 144);  // wood floor
+  room.show();                // rug + furniture + walls
 
-  background(255,255,191);
-  mouse = new PVector(mouseX, mouseY);
-
-  for (int i=0; i<ants.length; i++) {
-    ants[i].show();
-    ants[i].move();
-    ants[i].bounce();
-    
-    if (s != null) {
-      if (i==0){
-        ants[0].seek(s.location);
-      } else {
-      ants[i].seek(ants[i-1].location);
-      }    
-    } 
+  for (AntGroup g : groups) {
+    g.update(player.loc);
+    g.show();
   }
 
-  if (mousePressed == true) {
-    s = new Sugar(mouseX, mouseY);
-  }
+  kitten.update(groups);
+  kitten.show();
 
-  if (s != null) {
-    s.show();
+  player.update();
+  room.check(player);  // push player out of furniture
+  player.show();
+
+  drawHint();
+}
+
+void drawHint() {
+  fill(75, 55, 35, 175);
+  noStroke();
+  textAlign(CENTER);
+  textSize(12);
+  text("Arrow keys: move  |  Space: stomp", width/2, height - 12);
+}
+
+void keyPressed() {
+  player.press(keyCode, key);
+  if (key == ' ' && player.canStomp()) {
+    player.startStomp();
+    for (AntGroup g : groups) g.scatter(player.loc, player.stompR);
   }
+}
+
+void keyReleased() {
+  player.release(keyCode, key);
 }

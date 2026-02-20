@@ -1,55 +1,67 @@
+// A single ant. Chases a target using Reynolds steering.
+// scatter() makes it flee and go on cooldown before resuming chase.
+
 class Ant {
-  PVector location;
-  PVector velocity;
-  PVector acceleration;
-  float maxForce;
-  float maxSpeed;
+  PVector loc, vel, acc;
+  float maxSpd, maxForce;
+  int scattered;  // frames left on scatter cooldown
 
   Ant() {
-    location = new PVector(random(0, width), random(0, height));
-    velocity = new PVector(random(-2,2), random(-2,2));
-    acceleration = new PVector(0, 0);
-    maxSpeed = random(0.4, 0.6);
-    maxForce = 0.1;
+    // Spawn at edges
+    if (random(1) > 0.5) {
+      loc = new PVector(random(width), random(1) > 0.5 ? 0 : height);
+    } else {
+      loc = new PVector(random(1) > 0.5 ? 0 : width, random(height));
+    }
+    vel      = new PVector(0, 0);
+    acc      = new PVector(0, 0);
+    maxSpd   = random(0.6, 0.9); // Slower
+    maxForce = 0.05;
+    scattered = 0;
   }
 
-  void show() {
-    fill(255,102,102);
-    stroke(175,66,66);
-    strokeWeight(4);
-    ellipse(location.x, location.y, 4, 4);
-    
-    noStroke();
-    ellipse(location.x, location.y, 4, 4);
+  void update(PVector target) {
+    if (scattered > 0) {
+      scattered--;
+      vel.mult(0.92);  // slow bleed-off after fleeing
+    } else {
+      seek(target);
+      vel.add(acc);
+      vel.limit(maxSpd);
+    }
+    acc.mult(0);
+    loc.add(vel);
+    bounce();
   }
 
-  void move() {
-    velocity.add(acceleration);
-    velocity.limit(maxSpeed);    
-    location.add(velocity);
-    acceleration.mult(0);
+  void seek(PVector target) {
+    PVector desired = PVector.sub(target, loc);
+    desired.normalize();
+    desired.mult(maxSpd);
+    PVector steer = PVector.sub(desired, vel);
+    steer.limit(maxForce);
+    acc.add(steer);
+  }
+
+  // called when stomped or attacked by kitten
+  void scatter(PVector src) {
+    PVector flee = PVector.sub(loc, src);
+    flee.normalize();
+    flee.mult(maxSpd * 6);
+    vel = flee;
+    scattered = int(random(80, 150));
   }
 
   void bounce() {
-    if (location.x > width || location.x <0){
-      velocity.x *= -1; }
-    if (location.y > height || location.y <0){
-      velocity.y *= -1; } 
-    }
-    
-    void applyForce(PVector force){
-      acceleration.add(force);
-    }
-    
-  void seek(PVector target) {
-    PVector desired = PVector.sub(target,location);
-    
-    desired.normalize();
-    desired.mult(maxSpeed);
-    
-    PVector steer = PVector.sub(desired,velocity);
-    steer.limit(maxForce);
-    
-    applyForce(steer);
+    if (loc.x > width-5  || loc.x < 5)      { vel.x *= -1; loc.x = constrain(loc.x, 5, width-5);  }
+    if (loc.y > height-5 || loc.y < 5)      { vel.y *= -1; loc.y = constrain(loc.y, 5, height-5); }
+  }
+
+  void show() {
+    boolean under = room.covered(loc);
+    if (scattered > 0) fill(150, 80, 30, under ? 45 : 175);
+    else               fill( 55, 25,  0, under ? 60 : 255);
+    noStroke();
+    ellipse(loc.x, loc.y, 5, 5);
   }
 }
